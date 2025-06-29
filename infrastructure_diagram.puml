@@ -1,0 +1,113 @@
+@startuml CKAN AWS Infrastructure
+
+' Basic settings for a cleaner diagram
+skinparam backgroundColor white
+skinparam defaultFontName Arial
+skinparam defaultFontSize 16
+skinparam roundCorner 12
+skinparam shadowing false
+skinparam linetype ortho
+
+' Custom styling
+skinparam rectangle {
+  BorderColor #3C7FC0
+  BackgroundColor #F2F8FE
+  FontColor #000000
+}
+
+' VPC specific styling
+skinparam rectangle<<vpc>> {
+  BorderColor #3C7FC0
+  BorderThickness 3
+  BackgroundColor #F2F8FE
+  FontColor #000000
+}
+
+skinparam database {
+  BorderColor #FF9900
+  BackgroundColor #FFE6BF
+  FontColor #000000
+}
+
+skinparam actor {
+  BorderColor #FF9800
+  BackgroundColor #FFF3E0
+  FontColor #000000
+}
+
+skinparam note {
+  BorderColor #9E9E9E
+  BackgroundColor #FAFAFA
+  FontColor #000000
+}
+
+skinparam arrow {
+  Color #505050
+}
+
+' Title
+title CKAN AWS Infrastructure
+
+' Define the public cloud container
+rectangle "AWS Cloud" as awscloud {
+  ' VPC
+  rectangle "VPC: Platform Network" as vpc <<vpc>> {
+    ' ECS Cluster
+    rectangle "ECS Cluster: ckan-cluster" as ecs {
+      rectangle "Fargate Service App" as fargate1 {
+        rectangle "CKAN Container" as ckan
+      }
+      rectangle "Fargate Service services" as fargate2 {
+        rectangle "Redis Container" as redis
+        rectangle "Solr Container" as solr
+      }
+    }
+
+    ' Database
+    database "RDS: PostgreSQL" as rds
+
+    ' Load Balancer
+    rectangle "Application Load Balancer" as alb
+  }
+
+  ' Storage
+  database "S3 Bucket" as s3
+  
+  ' Container Registry
+  rectangle "ECR: Docker Images" as ecr {
+    rectangle "CKAN Repository" as ckan_repo
+    rectangle "Solr Repository" as solr_repo
+    rectangle "Redis Repository" as redis_repo
+  }
+  
+  ' IAM
+  rectangle "IAM: Permissions" as iam {
+    rectangle "Storage IAM User" as user
+  }
+  
+  ' Logging
+  rectangle "CloudWatch" as cloudwatch
+  
+  ' Secrets
+  rectangle "Secrets Manager" as secrets
+  
+  ' DNS
+  rectangle "Route53" as route53
+  
+}
+
+' External User
+actor "End User" as enduser
+
+' Define relationships
+enduser --> route53 : DNS Query
+route53 --> alb : Routes to
+alb --> ecs : Routes to
+ecs --> rds : Database Connection
+ecs --> s3 : Reads/Writes Files
+ecs <-- ecr : Pulls Images
+ecs --> cloudwatch : Logs
+ecs --> secrets : Reads Secrets
+user --> s3 : Manages Files
+
+@enduml

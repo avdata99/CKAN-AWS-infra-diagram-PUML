@@ -1,6 +1,9 @@
 #!/bin/bash
 # Install PlantUML if not already installed
-if ! command -v plantuml &> /dev/null; then
+# check if ~/bin/plantuml.jar file exists (do not check the dir)
+if [ -f ~/bin/plantuml.jar ]; then
+    echo "PlantUML already installed at ~/bin/plantuml.jar"
+else
     echo "PlantUML not found, installing..."
     # Make sure Java is installed
     if ! command -v java &> /dev/null; then
@@ -18,8 +21,8 @@ fi
 
 # Generate diagram with no dependencies on external resources
 echo "Generating simple diagram from infrastructure_diagram.puml"
-OUTPUT_FILE="./aws/CKAN-AWS-Infrastructure.png"
-PUML_FILE="./aws/infrastructure_diagram.puml"
+OUTPUT_FILE="CKAN-AWS-Infrastructure.png"
+PUML_FILE="infrastructure_diagram.puml"
 rm -f "$OUTPUT_FILE"  # Remove existing file if it exists
 
 # Generate diagram (no verbose output to reduce noise)
